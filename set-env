@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+
+set -o errexit
+set -o nounset
+set -o pipefail
+
+SATELLITE_LOCATION_NAME="${SATELLITE_LOCATION_NAME:?You must set the SATELLITE_LOCATION_NAME in .envrc and ensure it is sourced.}"
+
+if command -v gmake &> /dev/null
+then
+    MAKE_COMMAND="gmake"
+else
+    MAKE_COMMAND="make"
+fi
+
+${MAKE_COMMAND} login_ibmcloud
+
+echo "Appending IPs and hostnames to .envrc file"
+echo
+INFRA_HOSTS=$(ibmcloud sat hosts --location "${SATELLITE_LOCATION_NAME}" | grep -i infrastructure | grep Ready | awk {'print $8'})
+echo "ControlPlanes IPs: ${INFRA_HOSTS}"
+echo >> .envrc
+echo "# The *public* IP addresses of the control plane hosts." >> .envrc
+echo >> .envrc
+i=1
+for IP_HOST in ${INFRA_HOSTS[*]};
+do
+    public_ip=$(aws ec2 describe-instances --output text | grep INSTANCE | grep "${SATELLITE_LOCATION_NAME}" | grep "${IP_HOST}" | awk '{ print $15 }')
+    echo Adding export AWS_CONTROL_PLANE_PUBLIC_IP_${i}="${public_ip}" to .envrc
+    echo export AWS_CONTROL_PLANE_PUBLIC_IP_${i}="${public_ip}" >> .envrc
+    ((i++))
+done
+echo >> .envrc
+echo >> .envrc
+echo "# The *public* IP addresses and the names of the worker nodes." >> .envrc
+echo >> .envrc
+
+WORKER_HOSTS=$(ibmcloud sat hosts --location "${SATELLITE_LOCATION_NAME}" | grep -iv infrastructure | grep Ready | awk {'print $1'})
+echo 
+echo "Worker hosts:" "${WORKER_HOSTS}"
+i=1
+for HOSTNAME in ${WORKER_HOSTS[*]};
+do
+    public_ip=$(aws ec2 describe-instances --output text | grep INSTANCE | grep ${SATELLITE_LOCATION_NAME} | grep ${HOSTNAME} | awk '{ print $15 }')
+    echo Adding export AWS_WORKER_NODE_PUBLIC_IP_${i}="${public_ip}" to .envrc
+    echo export AWS_WORKER_NODE_PUBLIC_IP_${i}="${public_ip}" >> .envrc
+    echo Adding export SATELLITE_WORKER_NODE_NAME_${i}="${HOSTNAME}" to .envrc
+    echo export SATELLITE_WORKER_NODE_NAME_${i}="${HOSTNAME}" >> .envrc    
+    ((i++))
+done
