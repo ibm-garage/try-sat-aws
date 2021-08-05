@@ -1,4 +1,4 @@
-# Create a complete IBM Cloud Satellite environment on AWS using try-sat (AWS edition)
+# Create a complete IBM Cloud Satellite environment on AWS using try-sat
 
 This tutorial and set of scripts provides a mostly-automated way to set up an IBM Cloud Satellite™ location and RedHat® OpenShift® cluster on Amazon Web Services. This should not be seen as a total production-ready solution, but it should provide a useful tool for PoCs, learning, and experimenting.
 
