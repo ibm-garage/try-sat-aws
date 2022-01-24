@@ -25,7 +25,7 @@ echo >> .envrc
 i=1
 for IP_HOST in ${INFRA_HOSTS[*]};
 do
-    public_ip=$(aws ec2 describe-instances --output text | grep INSTANCE | grep "${SATELLITE_LOCATION_NAME}" | grep "${IP_HOST}" | awk '{ print $15 }')
+    public_ip=$(aws ec2 describe-instances --output text | grep INSTANCE | grep "${SATELLITE_LOCATION_NAME}" | grep "${IP_HOST}" | awk '{ print $19 }')
     echo Adding export AWS_CONTROL_PLANE_PUBLIC_IP_${i}="${public_ip}" to .envrc
     echo export AWS_CONTROL_PLANE_PUBLIC_IP_${i}="${public_ip}" >> .envrc
     ((i++))
@@ -41,7 +41,7 @@ echo "Worker hosts:" "${WORKER_HOSTS}"
 i=1
 for HOSTNAME in ${WORKER_HOSTS[*]};
 do
-    public_ip=$(aws ec2 describe-instances --output text | grep INSTANCE | grep ${SATELLITE_LOCATION_NAME} | grep ${HOSTNAME} | awk '{ print $15 }')
+    public_ip=$(aws ec2 describe-instances --output text | grep INSTANCE | grep ${SATELLITE_LOCATION_NAME} | grep ${HOSTNAME} | awk '{ print $19 }')
     echo Adding export AWS_WORKER_NODE_PUBLIC_IP_${i}="${public_ip}" to .envrc
     echo export AWS_WORKER_NODE_PUBLIC_IP_${i}="${public_ip}" >> .envrc
     echo Adding export SATELLITE_WORKER_NODE_NAME_${i}="${HOSTNAME}" to .envrc
